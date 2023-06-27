@@ -25,16 +25,18 @@ ansible-galaxy install bngameni.compose_deploy
 
 | Variable                            | Default Value | Description                                                                                       |
 |-------------------------------------|---------------|---------------------------------------------------------------------------------------------------|
-| `compose_deploy_volumes_dir`        | `[]`          | Paths to volumes to create (only when using the "bind" type)                                      |
-| `compose_deploy_manifests`          | `[]`          | Path to the docker-compose.yaml file (leave blank if using other files)                           |
-| `compose_deploy_templates`          | `[]`          | Path to the docker-compose.yaml files as Jinja2 templates (leave blank if using other files)      |
-| `compose_deploy_definition`         | `[]`          | Compose definition (content of the docker-compose file)                                           |
-| `compose_deploy_config_files`       | `[]`          | Path to folder or files to copy to the remote for the compose file                                |
-| `compose_deploy_use_selfsigned_ssl` | `false`       | Use SSL for installing the compose service. Set the domain name to get self-signed certificates   |
-| `compose_deploy_domain_name`        | `[]`          | Domain name to use for installation                                                               |
+| compose_deploy_volumes_dir          | []            | Paths to volumes to create (only when using the "bind" type)                                      |
+| compose_deploy_manifests            | []            | Path to the docker-compose.yaml file (leave blank if using other files)                           |
+| compose_deploy_templates            | []            | Path to the docker-compose.yaml files as Jinja2 templates (leave blank if using other files)      |
+| compose_deploy_definition           | []            | Compose definition (content of the docker-compose file)                                           |
+| compose_deploy_config_files         | []            | Path to folder or files to copy to the remote for the compose file                                |
+| compose_deploy_use_selfsigned_ssl   | false         | Use SSL for installing the compose service. Set the domain name to get self-signed certificates   |
+| compose_deploy_domain_name          | []            | Domain name to use for installation                                                               |
+
+
+&nbsp;
 
 Additionally, here is a structure of items:
-
 
 * compose_deploy_manifests
 * compose_deploy_templates
@@ -42,30 +44,30 @@ Additionally, here is a structure of items:
 
 | Attributes                          | Default Value          | Description                                                                              |
 |-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
-| `src`                               | `None` **required**    | The source path of the file                                                              |
-| `dest`                              | `None` **required**    | The destination path on the remote server where the file will be                         |
-| `mode`                              | `0644`                 | The file permissions/mode for the file                                                   |
+| src                                 | None **required**      | The source path of the file                                                              |
+| dest                                | None **required**      | The destination path on the remote server where the file will be                         |
+| mode                                | 0644                   | The file permissions/mode for the file                                                   |
 
-
+&nbsp;
 * compose_deploy_definition
 
 | Attributes                          | Default Value          | Description                                                                              |
 |-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
-| `name`                              | `None` **required**    | The name of service/application                                                          |
-| `value`                             | `None` **required**    | The docker-compose definition(content of manifest)                                       |
+| name                                | None **required**      | The name of service/application                                                          |
+| value                               | None **required**      | The docker-compose definition(content of manifest)                                       |
 
-
+&nbsp;
 * compose_deploy_domain_name
 
-| Attributes                          | Default Value          | Description                                                                              |
-|-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
-| `dest_path`                         | `/etc/ssl`             | The destination path on the remote server where the manifest file will be copied.        |
-| `country_name`                      | `FR`                   | The country name used for generating self-signed certificates.                           |
-| `common_name`                       | `None`  **required**   | The common name used for generating self-signed certificates.                            |
-| `state_or_province_name`            | `None`                 | The state or province name used for generating self-signed certificates.                 |
-| `organization_name`                 | `None`                 | The organization name used for generating self-signed certificates.                      |
-| `organizational_unit_name`          | `None`                 | The organizational unit name used for generating self-signed certificates.               |
-| `email_address`                     | `None`                 | The email address used for generating self-signed certificates.                          |
+| Attributes                        | Default Value        | Description                                                                              |
+|-----------------------------------|----------------------|------------------------------------------------------------------------------------------|
+| dest_path                         | /etc/ssl             | The destination path on the remote server where the manifest file will be copied.        |
+| country_name                      | FR                   | The country name used for generating self-signed certificates.                           |
+| common_name                       | None  **required**   | The common name used for generating self-signed certificates.                            |
+| state_or_province_name            | None                 | The state or province name used for generating self-signed certificates.                 |
+| organization_name                 | None                 | The organization name used for generating self-signed certificates.                      |
+| organizational_unit_name          | None                 | The organizational unit name used for generating self-signed certificates.               |
+| email_address                     | None                 | The email address used for generating self-signed certificates.                          |
 
 
 ## :arrows_counterclockwise: Dependencies
@@ -178,10 +180,15 @@ N/A
     - bngameni.compose_deploy
 ```
 
+&nbsp;
 ## :closed_lock_with_key: [Hardening](HARDENING.md)
 
+&nbsp;
 ## :heart_eyes_cat: [Contributing](CONTRIBUTING.md)
 
+&nbsp;
 ## :copyright: [License](LICENSE)
+
+&nbsp;
 
 [Mozilla Public License Version 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
