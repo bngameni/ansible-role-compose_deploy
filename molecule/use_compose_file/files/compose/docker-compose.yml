@@ -1,0 +1,26 @@
+---
+version: '3.9'
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - /app/db:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+  nginx:
+    image: nginx
+    restart: always
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    volumes:
+      - type: bind
+        source: /app/nginx/nginx.conf
+        target: /etc/nginx/conf.d/nginx.conf
+      - type: bind
+        source: /etc/ssl/localhost
+        target: /etc/ssl/localhost

@@ -1,0 +1,28 @@
+---
+- name: "Install python3-pip packages for certificates"
+  ansible.builtin.package:
+    name:
+      - python3-pip
+      - python3-setuptools
+      - python3-cryptography
+    state: present
+
+- name: Install Docker SDK for Python
+  ansible.builtin.pip:
+    name:
+      - docker
+      - docker-compose
+    executable: pip3
+    state: present
+
+- name: "Include tasks for get self signed certificates"
+  ansible.builtin.include_tasks:
+    file: selfsigned-ssl.yml
+  loop: "{{ compose_deploy_domain_names }}"
+  when:
+    - compose_deploy_use_selfsigned_ssl
+    - compose_deploy_domain_names
+
+- name: "Include tasks for setup services"
+  ansible.builtin.include_tasks:
+    file: setup.yml

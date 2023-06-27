@@ -1,0 +1,48 @@
+---
+- name: "Create volumes for docker-compose service"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0644"
+    recurse: true
+  loop: "{{ compose_deploy_volumes_dir }}"
+  when: compose_deploy_volumes_dir
+
+- name: "Copy docker-compose file to server"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop: "{{ compose_deploy_manifests }}"
+  when: compose_deploy_manifests
+
+- name: "Copy docker-compose template to server"
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}/docker-compose.yml"
+    mode: "{{ item.mode | default('0644') }}"
+  loop: "{{ compose_deploy_templates }}"
+  when: compose_deploy_templates
+
+- name: "Copy files remotely"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop: "{{ compose_deploy_config_files }}"
+  when: compose_deploy_config_files
+
+- name: "Launch service with docker-compose using existing file"
+  community.docker.docker_compose:
+    project_src: "{{ item.dest }}"
+    state: present
+  loop: "{{ compose_deploy_templates if compose_deploy_templates else compose_deploy_manifests }}"
+  when: compose_deploy_manifests or compose_deploy_templates
+
+- name: "Launch service with docker-compose using definiton"
+  community.docker.docker_compose:
+    project_name: "{{ item.name }}"
+    definition: "{{ item.value }}"
+    state: present
+  loop: "{{ compose_deploy_definition }}"
+  when: compose_deploy_definition

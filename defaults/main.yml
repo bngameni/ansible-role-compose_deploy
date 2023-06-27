@@ -1,0 +1,23 @@
+---
+# defaults file for role
+
+# Paths to volumes to create (only when using the "bind" type)
+compose_deploy_volumes_dir: []
+
+#  Path to the docker-compose.yaml file (leave blank if using other files)
+compose_deploy_manifests: []
+
+# Path to the docker-compose.yaml files as Jinja2 templates (leave blank if using other files)
+compose_deploy_templates: []
+
+# Compose definition (content of the docker-compose file)
+compose_deploy_definition: []
+
+# Path to folder or files to copy to the remote for the compose file
+compose_deploy_config_files: []
+
+#  Use SSL for installing the compose service. Set the domain name to get self-signed certificates
+compose_deploy_use_selfsigned_ssl: false
+
+# Domain name to use for installation
+compose_deploy_domain_names: []
