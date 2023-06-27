@@ -1,0 +1,56 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    # svc compose volumes dir to create
+    compose_deploy_volumes_dir:
+      - /app/nginx
+
+    # files to use as configuration
+    compose_deploy_config_files:
+      - src: files/nginx/nginx.conf
+        dest: /app/nginx
+
+    # use ssl self-signed
+    compose_deploy_use_selfsigned_ssl: true
+    compose_deploy_domain_names:
+      - name: "localhost"
+
+    # compose definiton
+    compose_deploy_definition:
+      - name: flask
+        value:
+          version: '3.9'
+          services:
+            db:
+              image: postgres
+              restart: always
+              environment:
+                POSTGRES_PASSWORD: example
+              volumes:
+                - /app/db:/var/lib/postgresql/data
+            adminer:
+              image: adminer
+              restart: always
+            nginx:
+              image: nginx
+              restart: always
+              ports:
+                - "80:80/tcp"
+                - "443:443/tcp"
+              volumes:
+                - type: bind
+                  source: /app/nginx/nginx.conf
+                  target: /etc/nginx/conf.d/nginx.conf
+                - type: bind
+                  source: /etc/ssl/localhost
+                  target: /etc/ssl/localhost
+
+  pre_tasks:
+    - name: "Install iproute2 packages"
+      ansible.builtin.package:
+        name: "iproute2"
+        state: present
+
+  roles:
+    - role: bngameni.compose_deploy
