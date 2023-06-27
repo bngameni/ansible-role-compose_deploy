@@ -1,0 +1,22 @@
+galaxy_info:
+  role_name: "compose_deploy"
+  namespace: "bngameni"
+  description: "Install and configure docker-compose service"
+  author: "bngameni"
+  company: "Claranet France"
+
+  license: "MPL2"
+
+  min_ansible_version: "2.10"
+
+  galaxy_tags: ['bngameni', 'compose', 'svccompose']
+
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+
+dependencies: []
