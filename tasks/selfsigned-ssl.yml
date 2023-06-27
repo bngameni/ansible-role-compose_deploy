@@ -1,0 +1,35 @@
+---
+- name: "Set the path to store certificate"
+  ansible.builtin.set_fact:
+    _compose_deploy_destination_certs_path: "{{ item.dest_path if item.dest_path is defined else '/etc/ssl/' + item.name }}"
+
+- name: "Create directory for store certificates"
+  ansible.builtin.file:
+    path: "{{ _compose_deploy_destination_certs_path }}"
+    state: directory
+    mode: "0644"
+
+- name: "Generate an OpenSSL private key"
+  community.crypto.openssl_privatekey:
+    path: "{{ _compose_deploy_destination_certs_path }}/privkey.pem"
+    size: "2048"
+    type: "RSA"
+    backup: true
+
+- name: Generate an OpenSSL Certificate Signing Request with Subject information
+  community.crypto.openssl_csr:
+    path: "{{ _compose_deploy_destination_certs_path }}/fullchain.csr"
+    privatekey_path: "{{ _compose_deploy_destination_certs_path }}/privkey.pem"
+    country_name: "{{ item.country_name | default('FR') }}"
+    common_name: "{{ item.name }}"
+    state_or_province_name: "{{ item.state_or_province_name | default(omit) }}"
+    organization_name: "{{ item.organization_name | default(omit) }}"
+    organizational_unit_name: "{{ item.organizational_unit_name | default(omit) }}"
+    email_address: "{{ item.email_address | default(omit) }}"
+
+- name: Generate a Self Signed OpenSSL certificate
+  community.crypto.x509_certificate:
+    path: "{{ _compose_deploy_destination_certs_path }}/fullchain.pem"
+    privatekey_path: "{{ _compose_deploy_destination_certs_path }}/privkey.pem"
+    csr_path: "{{ _compose_deploy_destination_certs_path }}/fullchain.csr"
+    provider: selfsigned
