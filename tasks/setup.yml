@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    mode: "0644"
+    mode: "0755"
     recurse: true
   loop: "{{ compose_deploy_volumes_dir }}"
   when: compose_deploy_volumes_dir
