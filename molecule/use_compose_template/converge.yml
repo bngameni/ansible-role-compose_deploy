@@ -4,7 +4,8 @@
   vars:
     # svc compose volumes dir to create
     compose_deploy_volumes_dir:
-      - /app/nginx
+      - path: /app/nginx
+        mode: "0755"
 
     # files to use as configuration
     compose_deploy_config_files:

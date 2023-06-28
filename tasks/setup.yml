@@ -1,9 +1,9 @@
 ---
 - name: "Create volumes for docker-compose service"
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ item.path }}"
     state: directory
-    mode: "0755"
+    mode: "{{ item.mode | default('0755') }}"
     recurse: true
   loop: "{{ compose_deploy_volumes_dir }}"
   when: compose_deploy_volumes_dir
@@ -28,7 +28,7 @@
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    mode: "{{ item.mode | default('0644') }}"
+    mode: "{{ item.mode | default('0755') }}"
   loop: "{{ compose_deploy_config_files }}"
   when: compose_deploy_config_files
 
