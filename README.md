@@ -46,7 +46,7 @@ Additionally, here is a structure of items:
 |-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
 | src                                 | None **required**      | The source path of the file                                                              |
 | dest                                | None **required**      | The destination path on the remote server where the file will be                         |
-| mode                                | 0644                   | The file permissions/mode for the file                                                   |
+| mode                                | 0755                   | The file permissions/mode for the file                                                   |
 
 &nbsp;
 * compose_deploy_definition
@@ -55,6 +55,15 @@ Additionally, here is a structure of items:
 |-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
 | name                                | None **required**      | The name of service/application                                                          |
 | value                               | None **required**      | The docker-compose definition(content of manifest)                                       |
+
+&nbsp;
+* compose_deploy_volumes_dir
+
+| Attributes                          | Default Value          | Description                                                                              |
+|-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
+| path                                | None **required**      | The path to the volume to create(bind type)                                              |
+| mode                                | None **required**      | The file permissions/mode for the file                                                   |
+
 
 &nbsp;
 * compose_deploy_domain_name
