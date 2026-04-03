@@ -1,28 +1,109 @@
 ---
-- name: "Install python3-pip packages for certificates"
-  ansible.builtin.package:
+- name: "Install compose runtime packages"
+  ansible.builtin.apt:
     name:
       - python3-pip
-      - python3-setuptools
-      - python3-cryptography
+      - python3-docker
     state: present
+    update_cache: true
 
-- name: Install Docker SDK for Python
-  ansible.builtin.pip:
-    name:
-      - docker
-      - docker-compose
-    executable: pip3
-    state: present
-
-- name: "Include tasks for get self signed certificates"
-  ansible.builtin.include_tasks:
-    file: selfsigned-ssl.yml
-  loop: "{{ compose_deploy_domain_names }}"
+- name: "Collect volume directories state"
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop: "{{ compose_deploy_volumes_dir }}"
+  loop_control:
+    label: "{{ item.path }}"
+  register: _compose_deploy_volume_dirs_state
   when:
-    - compose_deploy_use_selfsigned_ssl
-    - compose_deploy_domain_names
+    - compose_deploy_volumes_dir | length > 0
 
-- name: "Include tasks for setup services"
-  ansible.builtin.include_tasks:
-    file: setup.yml
+- name: "Fail when a volume path exists and is not a directory"
+  ansible.builtin.fail:
+    msg: >-
+      Volume path {{ item.item.path }} exists but is not a directory.
+      Update compose_deploy_volumes_dir or remove the conflicting path.
+  loop: "{{ _compose_deploy_volume_dirs_state.results }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+  when:
+    - item.stat.exists
+    - not item.stat.isdir
+
+- name: "Create missing volumes for docker-compose service"
+  ansible.builtin.file:
+    path: "{{ item.item.path }}"
+    state: directory
+    mode: "{{ item.item.mode | default('0755') }}"
+  loop: "{{ _compose_deploy_volume_dirs_state.results }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+  when: not item.stat.exists
+
+- name: "Skip existing volume directories with a different mode"
+  ansible.builtin.debug:
+    msg: >-
+      Volume path {{ item.item.path }} already exists with mode {{ item.stat.mode }}.
+      Requested mode is {{ item.item.mode | default('0755') }}. Permissions are left unchanged.
+  loop: "{{ _compose_deploy_volume_dirs_state.results }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+  when:
+    - item.stat.exists
+    - item.stat.isdir
+    - (item.stat.mode | string | int(base=8)) != (item.item.mode | default('0755') | string | int(base=8))
+
+- name: "Collect compose projects state"
+  ansible.builtin.stat:
+    path: "{{ item.dest }}"
+  loop: "{{ compose_deploy_projects }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  register: _compose_deploy_projects_state
+  when:
+    - compose_deploy_projects | length > 0
+
+- name: "Fail when a project destination exists and is not a directory"
+  ansible.builtin.fail:
+    msg: >-
+      Project destination {{ item.item.dest }} exists but is not a directory.
+      Update compose_deploy_projects or remove the conflicting path.
+  loop: "{{ _compose_deploy_projects_state.results }}"
+  loop_control:
+    label: "{{ item.item.dest }}"
+  when:
+    - item.stat.exists
+    - not item.stat.isdir
+
+- name: "Create missing compose project directories"
+  ansible.builtin.file:
+    path: "{{ item.item.dest }}"
+    state: directory
+    mode: "{{ item.item.directory_mode | default('0755') }}"
+  loop: "{{ _compose_deploy_projects_state.results }}"
+  loop_control:
+    label: "{{ item.item.dest }}"
+  when:
+    - not item.stat.exists
+
+- name: "Copy compose projects to server"
+  ansible.builtin.copy:
+    src: "{{ item.src | regex_replace('/?$', '/') }}"
+    dest: "{{ item.dest | regex_replace('/?$', '/') }}"
+    mode: "{{ item.mode | default(omit) }}"
+    directory_mode: "{{ item.directory_mode | default(omit) }}"
+  loop: "{{ compose_deploy_projects }}"
+  loop_control:
+    label: "{{ item.src }} to {{ item.dest }}"
+  when:
+    - compose_deploy_projects | length > 0
+
+- name: "Launch service with docker-compose using project directory"
+  community.docker.docker_compose_v2:
+    project_name: "{{ item.name | default(omit) }}"
+    project_src: "{{ item.dest }}"
+    state: present
+  loop: "{{ compose_deploy_projects }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  when:
+    - compose_deploy_projects | length > 0

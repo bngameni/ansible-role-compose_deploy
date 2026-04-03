@@ -3,9 +3,25 @@ name: Ansible Molecule
 
 on:  # yamllint disable-line rule:truthy
   push:
-    tags_ignore:
-      - '*'
+    branches:
+      - "**"
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - '.mise.toml'
   pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - '.mise.toml'
+
+permissions:
+  contents: write # to be able to publish a GitHub release
+  issues: write # to be able to comment on released issues
+  pull-requests: write # to be able to comment on released pull requests
+  id-token: write # to enable use of OIDC for authentication
+
+env:
+  PYTHON_VERSION: "3.13"
 
 jobs:
   setup:
@@ -14,7 +30,7 @@ jobs:
     outputs:
       scenarios: ${{ steps.matrix.outputs.scenarios }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - id: matrix
         run: |
           JSON="["
@@ -29,50 +45,101 @@ jobs:
           JSON="${JSON%?}"
           JSON="$JSON]"
 
-          echo "::set-output name=scenarios::$(echo $JSON)"
+          echo "scenarios=$JSON" >> "$GITHUB_OUTPUT"
 
   lint:
     name: Lint
-    needs:
-      - setup
     runs-on: ubuntu-22.04
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: "${{ github.repository }}"
-      - name: molecule
-        uses: robertdebock/molecule-action@4.0.9
+      - name: setup python
+        uses: actions/setup-python@v6
         with:
-          command: lint
-          scenario: ${{ fromJson(needs.setup.outputs.scenarios)[0] }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: "${{ github.repository }}/requirements.txt"
+      - name: install lint dependencies
+        working-directory: "${{ github.repository }}"
+        run: |
+          python -V
+          python -m pip install --root-user-action ignore --upgrade pip
+          python -m pip install --root-user-action ignore -r requirements.txt
+      - name: yamllint
+        working-directory: "${{ github.repository }}"
+        run: yamllint .
+      - name: ansible-lint
+        working-directory: "${{ github.repository }}"
+        run: ansible-lint
 
   test:
     name: Scenario "${{ matrix.scenario }}" on ${{ matrix.config.image }}:${{ matrix.config.tag }}
     needs:
       - lint
       - setup
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         scenario: ${{ fromJson(needs.setup.outputs.scenarios) }}
         config:
           - image: "dcagatay/ubuntu-dind"
-            tag: "latest"
+            tag: "22.04"
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           path: "${{ github.repository }}"
+      - name: setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
       - name: Set correct right to docker.
         run: sudo chmod 666 /var/run/docker.sock
       - name: molecule
-        uses: robertdebock/molecule-action@4.0.9
+        uses: robertdebock/molecule-action@6.0.1
         with:
           image: ${{ matrix.config.image }}
           tag: ${{ matrix.config.tag }}
           scenario: ${{ matrix.scenario }}
         env:
           name: ${{ matrix.config.name }}
+
+  release-dry-run:
+    name: Release (Dry Run)
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps: &release_steps
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Install dependencies
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/git
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            npx semantic-release
+          else
+            npx semantic-release --dry-run
+          fi
+
+  release:
+    name: Release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps: *release_steps

@@ -1,9 +1,9 @@
 galaxy_info:
   role_name: "compose_deploy"
   namespace: "bngameni"
-  description: "Install and configure docker-compose service"
+  description: "Deploy Docker Compose projects from prepared directories"
   author: "bngameni"
-  company: "Claranet France"
+  company: "Renault"
 
   license: "MPL2"
 
@@ -18,5 +18,3 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - all
-
-dependencies: []

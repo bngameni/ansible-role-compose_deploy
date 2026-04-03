@@ -9,192 +9,107 @@
 
 > :star: Star us on GitHub — it motivates us a lot!
 
-Install and configure docker-compose service
+Deploy Docker Compose projects from prepared directories.
 
 ## :warning: Requirements
 
 Ansible >= 2.10
 
+Supported platforms:
+
+- Debian
+- Ubuntu
+
+The target host must already provide:
+
+- Docker Engine
+- Docker Compose v2 (`docker compose`)
+
+The role also requires the `community.docker` collection.
+
 ## :zap: Installation
 
 ```bash
 ansible-galaxy install bngameni.compose_deploy
+ansible-galaxy collection install community.docker
 ```
 
 ## :gear: Role variables
 
-| Variable                            | Default Value | Description                                                                                       |
-|-------------------------------------|---------------|---------------------------------------------------------------------------------------------------|
-| compose_deploy_volumes_dir          | []            | Paths to volumes to create (only when using the "bind" type)                                      |
-| compose_deploy_manifests            | []            | Path to the docker-compose.yaml file (leave blank if using other files)                           |
-| compose_deploy_templates            | []            | Path to the docker-compose.yaml files as Jinja2 templates (leave blank if using other files)      |
-| compose_deploy_definition           | []            | Compose definition (content of the docker-compose file)                                           |
-| compose_deploy_config_files         | []            | Path to folder or files to copy to the remote for the compose file                                |
-| compose_deploy_use_selfsigned_ssl   | false         | Use SSL for installing the compose service. Set the domain name to get self-signed certificates   |
-| compose_deploy_domain_name          | []            | Domain name to use for installation                                                               |
+| Variable | Default value | Description |
+|----------|---------------|-------------|
+| compose_deploy_projects | [] | Compose project directories to copy to the remote host and deploy with `docker compose` |
+| compose_deploy_volumes_dir | [] | Bind-mount directories to create before deploying a project |
 
+Additionally, here is the expected structure of each variable.
 
-&nbsp;
+### `compose_deploy_projects`
 
-Additionally, here is a structure of items:
+| Attribute | Default value | Description |
+|-----------|---------------|-------------|
+| src | None **required** | Local source directory of the Compose project |
+| dest | None **required** | Destination directory on the remote host |
+| name | omitted | Optional Compose project name passed to `docker compose` |
+| mode | omitted | Optional file mode applied while copying project files |
+| directory_mode | `0755` for newly created destination directories | Optional mode for directories created by the role |
 
-* compose_deploy_manifests
-* compose_deploy_templates
-* compose_deploy_config_files
+### `compose_deploy_volumes_dir`
 
-| Attributes                          | Default Value          | Description                                                                              |
-|-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
-| src                                 | None **required**      | The source path of the file                                                              |
-| dest                                | None **required**      | The destination path on the remote server where the file will be                         |
-| mode                                | 0755                   | The file permissions/mode for the file                                                   |
+| Attribute | Default value | Description |
+|-----------|---------------|-------------|
+| path | None **required** | Bind-mount directory to create |
+| mode | `0755` | Mode applied only when the directory does not already exist |
 
-&nbsp;
-* compose_deploy_definition
+## :bulb: Behavior notes
 
-| Attributes                          | Default Value          | Description                                                                              |
-|-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
-| name                                | None **required**      | The name of service/application                                                          |
-| value                               | None **required**      | The docker-compose definition(content of manifest)                                       |
-
-&nbsp;
-* compose_deploy_volumes_dir
-
-| Attributes                          | Default Value          | Description                                                                              |
-|-------------------------------------|------------------------|------------------------------------------------------------------------------------------|
-| path                                | None **required**      | The path to the volume to create(bind type)                                              |
-| mode                                | None **required**      | The file permissions/mode for the file                                                   |
-
-
-&nbsp;
-* compose_deploy_domain_name
-
-| Attributes                        | Default Value        | Description                                                                              |
-|-----------------------------------|----------------------|------------------------------------------------------------------------------------------|
-| dest_path                         | /etc/ssl             | The destination path on the remote server where the manifest file will be copied.        |
-| country_name                      | FR                   | The country name used for generating self-signed certificates.                           |
-| common_name                       | None  **required**   | The common name used for generating self-signed certificates.                            |
-| state_or_province_name            | None                 | The state or province name used for generating self-signed certificates.                 |
-| organization_name                 | None                 | The organization name used for generating self-signed certificates.                      |
-| organizational_unit_name          | None                 | The organizational unit name used for generating self-signed certificates.               |
-| email_address                     | None                 | The email address used for generating self-signed certificates.                          |
-
+- Existing bind-mount directories are never chmodded automatically if they already exist with another mode.
+- If a configured volume path or project destination exists and is not a directory, the role fails explicitly.
+- The role does not generate certificates and does not install Docker for you.
 
 ## :arrows_counterclockwise: Dependencies
 
-N/A
+Required collection:
 
+```yaml
+collections:
+  - community.docker
+```
 
 ## :pencil2: Example Playbook
 
-* Use compose definition
-
 ```yaml
 ---
 - name: Converge
   hosts: all
+  become: true
   vars:
     compose_deploy_volumes_dir:
-      - /app/nginx
-      
-    compose_deploy_config_files:
-      - src: files/nginx/nginx.conf
-        dest: /app/nginx
+      - path: /srv/flask/db
+        mode: "0755"
 
-    compose_deploy_use_selfsigned_ssl: true
-    compose_deploy_domain_names:
-      - name: "localhost"
-
-    compose_deploy_definition:
+    compose_deploy_projects:
       - name: flask
-        value:
-          version: '3.9'
-          services:
-            db:
-              image: postgres
-              restart: always
-              environment:
-                POSTGRES_PASSWORD: example
-              volumes:
-                - /app/db:/var/lib/postgresql/data
-            adminer:
-              image: adminer
-              restart: always
-            nginx:
-              image: nginx
-              restart: always
-              ports:
-                - "80:80/tcp"
-                - "443:443/tcp"
-              volumes:
-                - type: bind
-                  source: /app/nginx/nginx.conf
-                  target: /etc/nginx/conf.d/nginx.conf
-                - type: bind
-                  source: /etc/ssl/localhost
-                  target: /etc/ssl/localhost
+        src: files/flask/
+        dest: /opt/flask
+        directory_mode: "0755"
 
   roles:
     - bngameni.compose_deploy
 ```
 
-* Use yaml file
+Example project structure:
 
-```yaml
----
-- name: Converge
-  hosts: all
-  vars:
-    compose_deploy_volumes_dir:
-      - /app/nginx
-      
-    compose_deploy_config_files:
-      - src: files/nginx/nginx.conf
-        dest: /app/nginx
-
-    compose_deploy_use_selfsigned_ssl: true
-    compose_deploy_domain_names:
-      - name: "localhost"
-
-    compose_deploy_manifests:
-      - src: files/compose/docker-compose.yml
-        dest: /app/
-
-  roles:
-    - bngameni.compose_deploy
+```text
+files/
+└── flask/
+    ├── docker-compose.yml
+    └── nginx/
+        └── nginx.conf
 ```
 
-* Use jinja2 template file
-
-```yaml
----
-- name: Converge
-  hosts: all
-  vars:
-    compose_deploy_volumes_dir:
-      - /app/nginx
-      
-    compose_deploy_config_files:
-      - src: files/nginx/nginx.conf
-        dest: /app/nginx
-
-    compose_deploy_use_selfsigned_ssl: true
-    compose_deploy_domain_names:
-      - name: "localhost"
-
-    compose_deploy_templates:
-      - src: templates/compose/docker-compose.yml.j2
-        dest: /app/
-
-  roles:
-    - bngameni.compose_deploy
-```
-
-&nbsp;
 ## :closed_lock_with_key: [Hardening](HARDENING.md)
 
-&nbsp;
 ## :heart_eyes_cat: [Contributing](CONTRIBUTING.md)
 
-&nbsp;
 ## :copyright: [License](LICENSE)
 [Mozilla Public License Version 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
