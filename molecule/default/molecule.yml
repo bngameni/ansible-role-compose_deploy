@@ -1,7 +1,6 @@
 ---
 dependency:
-  name: shell
-  command: pip install requests
+  name: galaxy
 
 driver:
   name: docker
@@ -12,23 +11,18 @@ platforms:
   - name: bngameni_compose_deploy_${name:-${image:-debian}-${tag:-latest}-${scenario:-default}
     image: ${image:-debian}:${tag:-latest}
     privileged: true
-    pre_build_image: true
+    pre_build_image: false
     tty: true
 
 provisioner:
   name: ansible
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible/tmp
   env:
     ANSIBLE_FORCE_COLOR: "true"
   options:
     v: true
 
 verifier:
-  name: testinfra
-  options:
-    verbose: true
-    s: true
-
-lint: |
-  set -e
-  yamllint .
-  ansible-lint
+  name: ansible
