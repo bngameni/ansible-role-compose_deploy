@@ -3,7 +3,7 @@ galaxy_info:
   namespace: "bngameni"
   description: "Install and configure docker-compose service"
   author: "bngameni"
-  company: "Claranet France"
+  company: "Renault"
 
   license: "MPL2"
 
@@ -18,5 +18,3 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - all
-
-dependencies: []
