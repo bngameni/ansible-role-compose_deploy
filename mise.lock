@@ -1,0 +1,21 @@
+[[tools.act]]
+version = "0.2.87"
+backend = "aqua:nektos/act"
+"platforms.linux-arm64" = { checksum = "sha256:c17a9fe2428a4824f61248ceb8e93db8de95d9163b0f2651ec5ccea0e6f4edc8", url = "https://github.com/nektos/act/releases/download/v0.2.87/act_Linux_arm64.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:9bbfca7d779f71746233ec65e47fdcb12c4c976c1c97ec085956976fcabee866", url = "https://github.com/nektos/act/releases/download/v0.2.87/act_Linux_x86_64.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:dab0091c6f8229f955b83e3822aa24375f7a2852279d5a262446361cc3559d88", url = "https://github.com/nektos/act/releases/download/v0.2.87/act_Darwin_arm64.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:41077f98142b02e0bb45b181f57a068f6af86ce887d578a4da1a901b1d8f240a", url = "https://github.com/nektos/act/releases/download/v0.2.87/act_Darwin_x86_64.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:bb7c654b27d79fb98947e22ff846408ef8f93aab90dba6af3656b503b8811966", url = "https://github.com/nektos/act/releases/download/v0.2.87/act_Windows_x86_64.zip"}
+
+[[tools.pre-commit]]
+version = "4.5.1"
+backend = "aqua:pre-commit/pre-commit"
+
+[[tools.python]]
+version = "3.13.12"
+backend = "core:python"
+"platforms.linux-arm64" = { checksum = "sha256:378d23f64b1838efe5135600fb5e5070710e42a619cf19e110c1cf02841677bb", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-aarch64-unknown-linux-gnu-freethreaded-install_only_stripped.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:ce7bb0190fec87973a639142fa9c4114df7e97ea70bfb4e04e5efdf1ac8811c3", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-unknown-linux-gnu-freethreaded-install_only_stripped.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:da30ce1acc25fd02a061f6ae657b4647018ea85d37e686f88d8347acc0084382", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-aarch64-apple-darwin-freethreaded-install_only_stripped.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:d3bb5e4a8af669e23654509f2253652e811617f56686bf34d497fa54701bb0fd", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-apple-darwin-freethreaded-install_only_stripped.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:322e5a406a76c1a919b154477c047c9eb2d25fc26951d4fc0d380bd62d1d1ffc", url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260324/cpython-3.13.12+20260324-x86_64-pc-windows-msvc-freethreaded-install_only_stripped.tar.gz"}
