@@ -114,3 +114,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 >>>>>>> dev
+
+# Ignore .ansible folder
+.ansible/
