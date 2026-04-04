@@ -1,5 +1,5 @@
 ---
-name: Ansible Molecule
+name: CI
 
 on:  # yamllint disable-line rule:truthy
   push:
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     steps: &release_steps
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -125,7 +125,7 @@ jobs:
           node-version: "lts/*"
 
       - name: Install dependencies
-        run: npm install -g semantic-release @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator
+        run: npm install -g semantic-release @semantic-release/github @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/git
 
       - name: Release
         env:
@@ -143,3 +143,16 @@ jobs:
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps: *release_steps
+
+  publish:
+    name: Publish Ansible Galaxy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - release
+    runs-on: ubuntu-22.04
+    steps:
+      - name: publish
+        uses: robertdebock/galaxy-action@1.2.1
+        with:
+          galaxy_api_key: ${{ secrets.galaxy_api_key }}
+          git_branch: main
