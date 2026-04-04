@@ -2,8 +2,8 @@
 [![Maintainer](https://img.shields.io/badge/maintained%20by-bngameni-e00000?style=flat-square)](https://github.com/bngameni)
 [![License](https://img.shields.io/github/license/bngameni/ansible-role-compose_deploy?style=flat-square)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/bngameni/ansible-role-compose_deploy?style=flat-square)](https://github.com/bngameni/ansible-role-compose_deploy/releases)
-[![Status](https://img.shields.io/github/actions/workflow/status/bngameni/ansible-role-compose_deploy/molecule.yml?style=flat-square&label=tests&branch=main)](https://github.com/bngameni/ansible-role-compose_deploy/actions?query=workflow%3A%22Ansible+Molecule%22)
-[![Ansible version](https://img.shields.io/badge/ansible-%3E%3D2.10-black.svg?style=flat-square&logo=ansible)](https://github.com/ansible/ansible)
+[![Status](https://img.shields.io/github/actions/workflow/status/bngameni/ansible-role-compose_deploy/ci.yml?style=flat-square&label=tests&branch=main)](https://github.com/bngameni/ansible-role-compose_deploy/actions?query=workflow%3A%22CI%22)
+[![Ansible version](https://img.shields.io/badge/ansible-%3E%3D2.17-black.svg?style=flat-square&logo=ansible)](https://github.com/ansible/ansible)
 [![Ansible Galaxy](https://img.shields.io/badge/ansible-galaxy-black.svg?style=flat-square&logo=ansible)](https://galaxy.ansible.com/bngameni/compose_deploy)
 
 
@@ -13,7 +13,7 @@ Deploy Docker Compose projects from prepared directories.
 
 ## :warning: Requirements
 
-Ansible >= 2.10
+Ansible >= 2.17
 
 Supported platforms:
 
