@@ -1,5 +1,5 @@
 ---
-name: Ansible Molecule
+name: CI
 
 on:  # yamllint disable-line rule:truthy
   push:
@@ -143,3 +143,16 @@ jobs:
     needs: [lint, test]
     runs-on: ubuntu-latest
     steps: *release_steps
+
+  publish:
+    name: Publish Ansible Galaxy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - release
+    runs-on: ubuntu-22.04
+    steps:
+      - name: publish
+        uses: robertdebock/galaxy-action@1.2.1
+        with:
+          galaxy_api_key: ${{ secrets.galaxy_api_key }}
+          git_branch: main
