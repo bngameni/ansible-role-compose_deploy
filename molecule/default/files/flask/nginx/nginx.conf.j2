@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name localhost;
+    server_name {{ compose_deploy_nginx_server_name }};
 
     location / {
         proxy_pass http://adminer:8080;

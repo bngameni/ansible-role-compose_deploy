@@ -14,9 +14,8 @@ ENV {{ var }} {{ value }}
 {% endif %}
 
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
       python3 \
-      software-properties-common \
       curl \
       sudo \
       bash \

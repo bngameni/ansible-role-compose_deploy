@@ -4,6 +4,8 @@
   gather_facts: false
   become: false
   vars:
+    compose_deploy_nginx_server_name: flask.test.local
+
     # svc compose volumes dir to create
     compose_deploy_volumes_dir:
       - path: /app/db

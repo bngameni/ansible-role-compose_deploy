@@ -1,0 +1,130 @@
+---
+- name: "Fail when a compose project source directory is missing"
+  ansible.builtin.fail:
+    msg: >-
+      Compose project source {{ compose_deploy_project.src }} could not be found on the controller.
+  when: _compose_deploy_project_source_dir | length == 0
+
+- name: "Collect compose project source state"
+  ansible.builtin.stat:
+    path: "{{ _compose_deploy_project_source_dir }}"
+  register: _compose_deploy_project_source_state
+  delegate_to: localhost
+  become: false
+
+- name: "Fail when a compose project source is not a directory"
+  ansible.builtin.fail:
+    msg: >-
+      Compose project source {{ compose_deploy_project.src }} resolves to
+      {{ _compose_deploy_project_source_dir }} but is not a directory.
+  when: not _compose_deploy_project_source_state.stat.isdir
+
+- name: "Collect local compose project directories"
+  ansible.builtin.find:
+    paths:
+      - "{{ _compose_deploy_project_source_dir }}"
+    recurse: true
+    hidden: true
+    follow: true
+    file_type: directory
+  register: _compose_deploy_project_directories
+  delegate_to: localhost
+  become: false
+
+- name: "Collect local compose project files"
+  ansible.builtin.find:
+    paths:
+      - "{{ _compose_deploy_project_source_dir }}"
+    recurse: true
+    hidden: true
+    follow: true
+    file_type: file
+    excludes:
+      - "*.j2"
+  register: _compose_deploy_project_files
+  delegate_to: localhost
+  become: false
+
+- name: "Collect local compose project templates"
+  ansible.builtin.find:
+    paths:
+      - "{{ _compose_deploy_project_source_dir }}"
+    recurse: true
+    hidden: true
+    follow: true
+    file_type: file
+    patterns:
+      - "*.j2"
+  register: _compose_deploy_project_templates
+  delegate_to: localhost
+  become: false
+
+- name: "Collect compose project subdirectory state"
+  ansible.builtin.stat:
+    path: "{{ _compose_deploy_project_remote_path }}"
+  vars:
+    _compose_deploy_project_relative_path: >-
+      {{ compose_deploy_project_directory.path | regex_replace('^' ~ (_compose_deploy_project_source_dir | regex_escape) ~ '/?', '') }}
+    _compose_deploy_project_remote_path: >-
+      {{ _compose_deploy_project_dest_dir }}/{{ _compose_deploy_project_relative_path }}
+  loop: "{{ _compose_deploy_project_directories.files | sort(attribute='path') }}"
+  loop_control:
+    loop_var: compose_deploy_project_directory
+    label: "{{ _compose_deploy_project_relative_path }}"
+  register: _compose_deploy_project_subdirectories_state
+
+- name: "Fail when a compose project path exists and is not a directory"
+  ansible.builtin.fail:
+    msg: >-
+      Compose project path {{ _compose_deploy_project_remote_path }} exists but is not a directory.
+      Update compose_deploy_projects or remove the conflicting path.
+  vars:
+    _compose_deploy_project_remote_path: "{{ item.stat.path | default(item.invocation.module_args.path) }}"
+  loop: "{{ _compose_deploy_project_subdirectories_state.results }}"
+  loop_control:
+    label: "{{ _compose_deploy_project_remote_path }}"
+  when:
+    - item.stat.exists
+    - not item.stat.isdir
+
+- name: "Create missing compose project subdirectories"
+  ansible.builtin.file:
+    path: "{{ _compose_deploy_project_remote_path }}"
+    state: directory
+    mode: "{{ compose_deploy_project.directory_mode | default('0755') }}"
+  vars:
+    _compose_deploy_project_remote_path: "{{ item.stat.path | default(item.invocation.module_args.path) }}"
+  loop: "{{ _compose_deploy_project_subdirectories_state.results }}"
+  loop_control:
+    label: "{{ _compose_deploy_project_remote_path }}"
+  when: not item.stat.exists
+
+- name: "Copy compose project files"
+  ansible.builtin.copy:
+    src: "{{ compose_deploy_project_file.path }}"
+    dest: "{{ _compose_deploy_project_remote_path }}"
+    mode: "{{ compose_deploy_project.mode | default(omit) }}"
+  vars:
+    _compose_deploy_project_relative_path: >-
+      {{ compose_deploy_project_file.path | regex_replace('^' ~ (_compose_deploy_project_source_dir | regex_escape) ~ '/?', '') }}
+    _compose_deploy_project_remote_path: >-
+      {{ _compose_deploy_project_dest_dir }}/{{ _compose_deploy_project_relative_path }}
+  loop: "{{ _compose_deploy_project_files.files | sort(attribute='path') }}"
+  loop_control:
+    loop_var: compose_deploy_project_file
+    label: "{{ _compose_deploy_project_relative_path }}"
+
+- name: "Render compose project templates"
+  ansible.builtin.template:
+    src: "{{ compose_deploy_project_template.path }}"
+    dest: "{{ _compose_deploy_project_remote_path | regex_replace('\\.j2$', '') }}"
+    mode: "{{ compose_deploy_project.mode | default(omit) }}"
+  vars:
+    _compose_deploy_project_relative_path: >-
+      {{ compose_deploy_project_template.path | regex_replace('^' ~ (_compose_deploy_project_source_dir | regex_escape) ~ '/?', '') }}
+    _compose_deploy_project_remote_path: >-
+      {{ _compose_deploy_project_dest_dir }}/{{ _compose_deploy_project_relative_path }}
+  loop: "{{ _compose_deploy_project_templates.files | sort(attribute='path') }}"
+  loop_control:
+    loop_var: compose_deploy_project_template
+    label: "{{ _compose_deploy_project_relative_path }}"
