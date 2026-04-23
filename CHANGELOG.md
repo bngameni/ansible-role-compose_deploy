@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/bngameni/ansible-role-compose_deploy/compare/v1.0.0...v1.1.0) (2026-04-23)
+
+
+### Features
+
+* **role:** render j2 files in compose projects ([#6](https://github.com/bngameni/ansible-role-compose_deploy/issues/6)) ([b0b91af](https://github.com/bngameni/ansible-role-compose_deploy/commit/b0b91afbec5965a751f7188ac1770c28f4f04706))
+
 # 1.0.0 (2026-04-04)
 
 
