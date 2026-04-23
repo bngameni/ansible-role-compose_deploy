@@ -47,7 +47,7 @@ Additionally, here is the expected structure of each variable.
 
 | Attribute | Default value | Description |
 |-----------|---------------|-------------|
-| src | None **required** | Local source directory of the Compose project |
+| src | None **required** | Local source directory of the Compose project. Plain files are copied as-is. Files ending with `.j2` are rendered and deployed without the `.j2` suffix |
 | dest | None **required** | Destination directory on the remote host |
 | name | omitted | Optional Compose project name passed to `docker compose` |
 | mode | omitted | Optional file mode applied while copying project files |
@@ -64,6 +64,8 @@ Additionally, here is the expected structure of each variable.
 
 - Existing bind-mount directories are never chmodded automatically if they already exist with another mode.
 - If a configured volume path or project destination exists and is not a directory, the role fails explicitly.
+- Project files ending with `.j2` are rendered with `ansible.builtin.template` and deployed without the `.j2` suffix.
+- Raw `.j2` files are not copied to the target host.
 - The role does not generate certificates and does not install Docker for you.
 
 ## :arrows_counterclockwise: Dependencies
@@ -104,7 +106,7 @@ files/
 └── flask/
     ├── docker-compose.yml
     └── nginx/
-        └── nginx.conf
+        └── nginx.conf.j2
 ```
 
 ## :closed_lock_with_key: [Hardening](HARDENING.md)
